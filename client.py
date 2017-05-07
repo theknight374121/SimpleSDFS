@@ -144,8 +144,30 @@ def hasFileAccess(ssl_conn, filename):
 	else:
 		return False
 
-def handleDelegatePermission():
-	pass
+def handleDelegatePermission(ssl_conn):
+	#Ask filename you want to delegate permission for
+	filename=raw_input("Enter filename:")
+
+	#Check if user is owner to delegate permsisions
+	if hasFileAccess(ssl_conn, filename):
+		user = raw_input("ENter the user's name:")
+
+		#Send Payload
+		sendPayload(ssl_conn, user)
+
+		#Receive response
+		response = int(ssl_conn.recv(1))
+		if response==1:
+			print "Successfully added permissions!!"
+			return
+		else:
+			print "Error in adding permissions"
+			return
+	else:
+		print "Access Denied! Only owner of the file can add permissions"
+		return
+
+	
 
 def sendPayload(ssl_conn, data):
 	len_str = str(len(data))

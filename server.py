@@ -175,6 +175,7 @@ class HandleClients(Thread):
 	def handleSetPermission(self):
 		#Receive Filename from user
 		filename=self.receivePayload()
+		cursor = self.db.cursor()
 
 		if self.isOwner(filename):
 			#Fetch current permissions
@@ -191,18 +192,20 @@ class HandleClients(Thread):
 			user=data_list[0]
 			#Set permission
 			if data_list[1] == "R":
+				query = ''' UPDATE files SET RDONLY=%s WHERE filename=%s '''
 				r_perm = r_perm_e+":"+user
 				values = (r_perm,filename)
 			elif data_list[1] == "W":
+				query = ''' UPDATE files SET WRONLY=%s WHERE filename=%s '''
 				w_perm = w_perm_e+":"+user
 				values = (w_perm,filename)
 			elif data_list[1] == "RW":
+				query = ''' UPDATE files SET RDONLY=%s, WRONLY=%s WHERE filename=%s '''
 				r_perm = r_perm_e+":"+user
 				w_perm = w_perm_e+":"+user
 				values = (r_perm, w_perm, filename)
 
 			#Only supports read write
-			query = ''' UPDATE files SET RDONLY=%s, WRONLY=%s WHERE filename=%s '''
 			cursor.execute(query, values)
 			self.db.commit()
 			
@@ -212,15 +215,38 @@ class HandleClients(Thread):
 		return
 
 	def handleDelegatePermission(self):
-		pass
+		#Receive Filename from user
+		filename=self.receivePayload()
 
+		cursor = self.db.cursor()
+
+		if self.isOwner(filename):
+			#Fetch current permissions
+			query = '''SELECT RDONLY, WRONLY FROM files WHERE filename = %s'''
+			values = (filename,)
+			cursor.execute(query, values)
+			r_perm_e, w_perm_e = cursor.fetchone()
+			
+			#Add permissions for the other suser
+			user = self.receivePayload()
+
+			query = ''' UPDATE files SET RDONLY=%s, WRONLY=%s WHERE filename=%s '''
+			r_perm = r_perm_e+":"+user
+			w_perm = w_perm_e+":"+user
+			values = (r_perm, w_perm, filename)
+
+			cursor.execute(query, values)
+			self.db.commit()
+
+			#Send success maessage
+			self.sock.send("1")
+		
 	def logout(self):
 		#Cleanua
 		self.sock.close()
-		self.db.close()
 
 		#Logout message
-		print "Logging Out!"
+		print "{} Logged Out!".format(self.cli_username)
 		return 
 	
 	def sendPayload(self, data):
