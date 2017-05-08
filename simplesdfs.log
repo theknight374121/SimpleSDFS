@@ -1,0 +1,10 @@
+INFO:root:amey logged in!
+INFO:root:amey logged in!
+INFO:root:amey created a file named demo.txt
+INFO:root:amey logged in!
+INFO:root:amey created a file named mytestfile.txt
+INFO:root:amey wrote to a file named mytestfile.txt
+INFO:root:amey read a file named mytestfile.txt
+INFO:root:amey set permissions for file named mytestfile.txt
+INFO:root:amey delegated permission to testamey
+INFO:root:amey logged out

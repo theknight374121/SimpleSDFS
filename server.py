@@ -12,6 +12,7 @@ from threading import Thread
 import MySQLdb
 import getpass
 import hashlib
+import logging
 
 class HandleClients(Thread):
 	'''
@@ -97,6 +98,9 @@ class HandleClients(Thread):
 		#Return success message
 		self.sock.send("1")
 
+		#log this message
+		logging.info("%s created a file named %s", self.cli_username, filename)
+
 		return
 
 	def handleReadFile(self):
@@ -110,6 +114,8 @@ class HandleClients(Thread):
 				data_str="".join(data_list)
 				self.sendPayload(data_str)
 				file_obj.close()
+		#log this
+		logging.info("%s read a file named %s", self.cli_username, filename)
 		return
 
 	def handleWriteFile(self):
@@ -124,8 +130,10 @@ class HandleClients(Thread):
 				file_obj.close()
 			#Return success message
 			self.sock.send("1")
+		
+		logging.info("%s wrote to a file named %s", self.cli_username, filename)
 
-			return
+		return
 		
 	def hasFileAccess(self, filename, perm):
 		#Check if the client is owner of the file
@@ -211,6 +219,8 @@ class HandleClients(Thread):
 			
 			#Send success message
 			self.sock.send("1")
+		
+		logging.info("%s set permissions for file named %s", self.cli_username, filename)
 
 		return
 
@@ -240,6 +250,9 @@ class HandleClients(Thread):
 
 			#Send success maessage
 			self.sock.send("1")
+
+		logging.info("%s delegated permission to %s", self.cli_username, user )
+
 		
 	def logout(self):
 		#Cleanua
@@ -247,6 +260,8 @@ class HandleClients(Thread):
 
 		#Logout message
 		print "{} Logged Out!".format(self.cli_username)
+		logging.info("%s logged out", self.cli_username)
+
 		return 
 	
 	def sendPayload(self, data):
@@ -283,6 +298,7 @@ class HandleClients(Thread):
 		
 		if hashpwd == dbpwd:
 			self.cli_username=username
+			logging.info("%s logged in!",self.cli_username)
 			return True
 		else:
 			return False
@@ -347,6 +363,8 @@ def cleanup():
 	pass
 
 def main():
+	#Set loggin parameters
+	logging.basicConfig(filename='simplesdfs.log',level=logging.DEBUG)
 	#Connect to DB
 	dbconn=setupDBConn()
 	setupSSL(dbconn)
